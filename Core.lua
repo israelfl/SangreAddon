@@ -32,5 +32,4 @@ function SangreAddon:OnInitialize()
     SangreAddon:initConfig()
     addMapIcon()
     SangreAddon:initSangrelists()
-    SangreAddon:initSangre()
 end
