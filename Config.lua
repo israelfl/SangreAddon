@@ -123,8 +123,8 @@ end
 function SangreAddon:initConfig()
     SangreAddon.db = LibStub("AceDB-3.0"):New("SangreAddonDB", db_defaults, true)
 
-    buildFilterSpecOptions()
-    LibStub("AceConfig-3.0"):RegisterOptionsTable(SangreAddon.AceAddonName, configTable)
-    AceConfigDialog:AddToBlizOptions(SangreAddon.AceAddonName, SangreAddon.AceAddonName)
+    --buildFilterSpecOptions()
+    --LibStub("AceConfig-3.0"):RegisterOptionsTable(SangreAddon.AceAddonName, configTable)
+    --AceConfigDialog:AddToBlizOptions(SangreAddon.AceAddonName, SangreAddon.AceAddonName)
     migrateAddonDB()
 end

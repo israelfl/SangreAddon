@@ -11,7 +11,6 @@ local import_frame = nil
 local ITEM_COLORS = {}
 local items = {}
 
-
 local function createItemNameFrame(item_id)
     if item_id < 0 then
         local f = AceGUI:Create("Label")
@@ -19,7 +18,8 @@ local function createItemNameFrame(item_id)
     end
     --GetItemQualityColor
     local item_name = AceGUI:Create("Label")
-    item_name:SetFont("Fonts\\FRIZQT__.TTF", 14)
+
+    item_name:SetFont("Fonts\\FRIZQT__.TTF", 13)
     item_name:SetText(ITEM_COLORS[items[item_id]:GetItemQuality() or 0]..items[item_id]:GetItemName())
 
     return item_name
@@ -55,19 +55,18 @@ local function createItemFrame(item_id, size)
 end
 
 local function drawBossItems(frame, text)
-    frame:ReleaseChildren()
+    boss_frame:ReleaseChildren()
 
     for itemIndex, itemId in pairs(Sangre_instances[instance_name]["bosses"][boss_index]["items"]) do
         local itemsGroup = AceGUI:Create("SimpleGroup")
 
         itemsGroup:SetLayout("Table")
         itemsGroup:SetUserData("table", {
-            columns = {50, 300},
+            columns = {50, 425},
             space = 1,
             align = "LEFT",
             alignV = "MIDDLE"
         })
-        frame:AddChild(itemsGroup)
 
         items[itemId] = Item:CreateFromItemID(itemId)
 
@@ -75,6 +74,7 @@ local function drawBossItems(frame, text)
             items[itemId]:ContinueOnItemLoad(function()
                 itemsGroup:AddChild(createItemFrame(itemId, 32))
                 itemsGroup:AddChild(createItemNameFrame(itemId));
+                frame:AddChild(itemsGroup)
             end)
         end
     end
@@ -92,7 +92,7 @@ end
 
 local function drawBookingsData(itemId)
     saveData()
-    bookings_frame:ReleaseChildren()
+    --bookings_frame:ReleaseChildren()
 end
 
 local function buildInstanceDict()
@@ -115,7 +115,6 @@ local function loadData()
     if instance_name then
         buildBossDict(instance_name)
     end
-
 end
 
 local function drawDropdowns()
@@ -126,8 +125,8 @@ local function drawDropdowns()
 
     dropDownGroup:SetLayout("Table")
     dropDownGroup:SetUserData("table", {
-        columns = {130, 110, 180, 70, 100},
-        space = 1,
+        columns = {130, 180, 240},
+        space = 10,
         align = "MIDDLE",
         alignV = "MIDDLE"
     })
@@ -191,7 +190,7 @@ local function createBossFrame()
     local itemsContainer = AceGUI:Create("InlineGroup") -- "InlineGroup" is also good
     itemsContainer:SetFullWidth(true)
     itemsContainer:SetHeight(180)
-    itemsContainer:SetLayout("Fill") -- important!
+    itemsContainer:SetLayout("Fill")
     itemsContainer:SetTitle('Items')
     itemsContainer:SetAutoAdjustHeight(true)
 
@@ -214,40 +213,81 @@ local function createBossFrame()
 end
 
 local function createBookingsFrame()
-    local bookingsContainer = AceGUI:Create("InlineGroup") -- "InlineGroup" is also good
-    bookingsContainer:SetFullWidth(true)
-    bookingsContainer:SetHeight(180)
-    bookingsContainer:SetLayout("Fill") -- important!
-    bookingsContainer:SetTitle('Reservas')
-    bookingsContainer:SetAutoAdjustHeight(true)
-
-    main_frame:AddChild(bookingsContainer)
-
-
-    local bookingsFrame = AceGUI:Create("ScrollFrame")
-    bookingsFrame:SetFullWidth(true)
-    bookingsFrame:SetLayout("Table") -- probably?
-    bookingsFrame:SetUserData("table", {
+    local groupsHeight = 215
+    local bContainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
+    bContainer:SetFullWidth(true)
+    bContainer:SetHeight(0)
+    bContainer:SetAutoAdjustHeight(false)
+    bContainer:SetLayout("Table")
+    bContainer:SetUserData("table", {
         columns = {
-            {width = 425}
+            {width = 0.5},
+            {width = 0.5}
         },
-        space = -5,
+        space = 0,
         align = "LEFT",
-        alignV = "MIDDLE"
+        alignV = "TOP"
+    })
+    main_frame:AddChild(bContainer)
+
+    local bPlayersGrp = AceGUI:Create("InlineGroup")
+    bPlayersGrp:SetFullWidth(true)
+    bPlayersGrp:SetHeight(groupsHeight)
+    bPlayersGrp:SetLayout("Fill") -- important!
+    bPlayersGrp:SetTitle('Players')
+    bContainer:AddChild(bPlayersGrp)
+
+    local bPlayersTable = AceGUI:Create("ScrollFrame")
+    bPlayersTable:SetLayout("Table")
+    bPlayersTable:SetUserData("table", {
+        columns = {
+            {width = 0.99}
+        },
+        space = 0,
+        align = "LEFT",
+        alignV = "TOP"
     })
 
-    local pp2 = AceGUI:Create("Label")
-    pp2:SetFont("Fonts\\FRIZQT__.TTF", 14)
-    pp2:SetText('Juan')
-    bookingsFrame:AddChild(pp2)
+    for i = 1, 20 do
+        local label2 = AceGUI:Create("Label")
+        label2:SetFont("Fonts\\FRIZQT__.TTF", 12)
+        label2:SetText('Manolo')
+        bPlayersTable:AddChild(label2)
+    end
 
-    bookingsContainer:AddChild(bookingsFrame)
+    bPlayersGrp:AddChild(bPlayersTable)
+
+    local bReservesGrp = AceGUI:Create("InlineGroup")
+    bReservesGrp:SetFullWidth(true)
+    bReservesGrp:SetHeight(groupsHeight)
+    bReservesGrp:SetLayout("Fill") -- important!
+    bReservesGrp:SetTitle('Reservas')
+    bContainer:AddChild(bReservesGrp)
+
+    local bReservesTable = AceGUI:Create("ScrollFrame")
+    bReservesTable:SetLayout("Table")
+    bReservesTable:SetUserData("table", {
+        columns = {
+            {width = 0.99}
+        },
+        space = 0,
+        align = "LEFT",
+        alignV = "TOP"
+    })
+
+    for i = 1, 20 do
+        local label2 = AceGUI:Create("Label")
+        label2:SetFont("Fonts\\FRIZQT__.TTF", 12)
+        label2:SetText('Manolo')
+        bReservesTable:AddChild(label2)
+    end
+
+    bReservesGrp:AddChild(bReservesTable)
 
     bookings_frame = bookingsFrame
 end
 
 function SangreAddon:createMainFrame()
-
     if main_frame then
         AceGUI:Release(main_frame)
         return
@@ -281,6 +321,7 @@ function SangreAddon:createMainFrame()
     main_frame:SetLayout("List")
     main_frame:SetTitle(SangreAddon.AddonNameAndVersion)
     main_frame:SetStatusText("AceGUI-3.0")
+
     drawDropdowns()
     createBossFrame()
     createBookingsFrame()
@@ -289,7 +330,6 @@ function SangreAddon:createMainFrame()
 end
 
 function SangreAddon:createImportFrame()
-
     if import_frame then
         AceGUI:Release(import_frame)
         return
