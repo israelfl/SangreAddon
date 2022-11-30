@@ -8,6 +8,7 @@ local boss_options = {}
 local boss_index = nil
 local boss_frame = nil
 local bookings_frame = nil
+local selected_item_frame = nil
 local main_frame = nil
 local import_frame = nil
 local items = {}
@@ -38,6 +39,10 @@ local function createItemFrame(item_id, size)
     item_frame:SetImage(items[item_id]:GetItemIcon())
 
     item_frame:SetCallback("OnClick", function(button)
+        local _, item_to_show = SangreAddon:addItem(item_id)
+        selected_item_frame:ReleaseChildren();
+        selected_item_frame:AddChild(item_to_show)
+
         print('clickado', item_id, items[item_id]:GetItemName())
         --SetItemRef(items[item_id]:GetItemLink(), items[item_id]:GetItemLink(), "LeftButton")
     end)
@@ -57,27 +62,9 @@ end
 
 local function drawBossItems(frame)
     frame:ReleaseChildren()
-
-    for _, itemId in pairs(Sangre_instances[instance_name]["bosses"][boss_index]["items"]) do
-        local items_group = AceGUI:Create("SimpleGroup")
-
-        items_group:SetLayout("Table")
-        items_group:SetUserData("table", {
-            columns = {50, 425},
-            space = 1,
-            align = "LEFT",
-            alignV = "MIDDLE"
-        })
-
-        items[itemId] = Item:CreateFromItemID(itemId)
-
-        if (items[itemId]:GetItemID()) then
-            items[itemId]:ContinueOnItemLoad(function()
-                items_group:AddChild(createItemFrame(itemId, 32))
-                items_group:AddChild(createItemNameFrame(itemId));
-                frame:AddChild(items_group)
-            end)
-        end
+    selected_item_frame:ReleaseChildren();
+    for _, item_id in pairs(Sangre_instances[instance_name]["bosses"][boss_index]["items"]) do
+        SangreAddon:addItem(item_id, frame)
     end
 end
 
@@ -91,7 +78,7 @@ local function drawBossData()
     drawBossItems(boss_frame)
 end
 
-local function drawBookingsData(itemId)
+local function drawBookingsData(item_id)
     saveData()
     --bookings_frame:ReleaseChildren()
 end
@@ -188,6 +175,16 @@ local function drawImportTextarea()
 
 end
 
+local function createSelectedItemFrame()
+    local big_item_group = AceGUI:Create("InlineGroup")
+    big_item_group:SetFullWidth(true)
+    big_item_group:SetHeight(80)
+    big_item_group:SetTitle('Item Seleccionado')
+    big_item_group:SetLayout("Fill")
+    main_frame:AddChild(big_item_group)
+    selected_item_frame = big_item_group;
+end
+
 local function createBossFrame()
     local items_container = AceGUI:Create("InlineGroup") -- "InlineGroup" is also good
     items_container:SetFullWidth(true)
@@ -215,10 +212,10 @@ local function createBossFrame()
 end
 
 local function createBookingsFrame()
-    local groups_height = 215
+    local groups_height = 135
     local b_container = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
     b_container:SetFullWidth(true)
-    b_container:SetHeight(0)
+    b_container:SetHeight(1)
     b_container:SetAutoAdjustHeight(false)
     b_container:SetLayout("Table")
     b_container:SetUserData("table", {
@@ -326,6 +323,7 @@ function SangreAddon:createMainFrame()
 
     drawDropdowns()
     boss_frame = createBossFrame()
+    createSelectedItemFrame()
     createBookingsFrame()
     drawBossData()
     drawBookingsData()
@@ -347,6 +345,30 @@ function SangreAddon:createImportFrame()
     import_frame:SetTitle('Import Data')
     import_frame:SetStatusText("AceGUI-3.0")
     drawImportTextarea()
+end
+
+function SangreAddon:addItem(item_id, frame)
+    local item_group = AceGUI:Create("SimpleGroup")
+
+    item_group:SetLayout("Table")
+    item_group:SetUserData("table", {
+        columns = {50, 425},
+        space = 1,
+        align = "LEFT",
+        alignV = "MIDDLE"
+    })
+
+    items[item_id] = Item:CreateFromItemID(item_id)
+
+    if (items[item_id]:GetItemID()) then
+        items[item_id]:ContinueOnItemLoad(function()
+            item_group:AddChild(createItemFrame(item_id, 32))
+            item_group:AddChild(createItemNameFrame(item_id));
+            if frame then frame:AddChild(item_group) end
+        end)
+    end
+
+    return items[item_id], item_group
 end
 
 function SangreAddon:initSangrelists()
