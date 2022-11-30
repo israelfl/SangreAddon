@@ -4,6 +4,7 @@ local db_defaults = {
     char = {
         instance_name = "",
         boss_index = 0,
+        bookings = {},
         -- class_index = 1,
         -- spec_index = 1,
         -- phase_index = 1,
@@ -101,6 +102,7 @@ local function migrateAddonDB()
         SangreAddon.db.char.instance_name = "Loot Naxx 25"
         SangreAddon.db.char.boss_index = 1
         SangreAddon.db.char.version = 1.1
+        SangreAddon.db.char.bookings = {}
         -- SangreAddon.db.char.highlight_spec = {}
         -- SangreAddon.db.char.filter_specs = {}
         -- SangreAddon.db.char.class_index = 1

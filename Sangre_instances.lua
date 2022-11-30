@@ -503,19 +503,123 @@ Sangre_instances["Archavon 25"] = {
         {
             name = "Archavon the Stone Watcher",
             npcID = 31125,
-            Level = 999
+            Level = 999,
+            items = {
+                40418, -- Valorous Frostfire Robe,
+                40449, -- Valorous Robe of Faith,
+                40458, -- Valorous Raiments of Faith,
+                41858, -- Deadly Gladiator's Mooncloth Robe,
+                41920, -- Deadly Gladiator's Satin Robe,
+                41951, -- Deadly Gladiator's Silk Raiment,
+                40415, -- Valorous Frostfire Gloves,
+                40445, -- Valorous Gloves of Faith,
+                40454, -- Valorous Handwraps of Faith,
+                41873, -- Deadly Gladiator's Mooncloth Gloves,
+                41939, -- Deadly Gladiator's Satin Gloves,
+                41970, -- Deadly Gladiator's Silk Handguards,
+                40417, -- Valorous Frostfire Leggings,
+                40448, -- Valorous Leggings of Faith,
+                40457, -- Valorous Pants of Faith,
+                41863, -- Deadly Gladiator's Mooncloth Leggings,
+                41926, -- Deadly Gladiator's Satin Leggings,
+                41958, -- Deadly Gladiator's Silk Trousers,
+                40463, -- Valorous Dreamwalker Robe,
+                40469, -- Valorous Dreamwalker Vestments,
+                40471, -- Valorous Dreamwalker Raiments,
+                40495, -- Valorous Bonescythe Breastplate,
+                41309, -- Deadly Gladiator's Kodohide Robes,
+                41315, -- Deadly Gladiator's Wyrmhide Robes,
+                41649, -- Deadly Gladiator's Leather Tunic,
+                41660, -- Deadly Gladiator's Dragonhide Robes,
+                40460, -- Valorous Dreamwalker Handguards,
+                40466, -- Valorous Dreamwalker Gloves,
+                40472, -- Valorous Dreamwalker Handgrips,
+                40496, -- Valorous Bonescythe Gauntlets,
+                41286, -- Deadly Gladiator's Kodohide Gloves,
+                41292, -- Deadly Gladiator's Wyrmhide Gloves,
+                41766, -- Deadly Gladiator's Leather Gloves,
+                41772, -- Deadly Gladiator's Dragonhide Gloves,
+                40462, -- Valorous Dreamwalker Leggings,
+                40468, -- Valorous Dreamwalker Trousers,
+                40493, -- Valorous Dreamwalker Legguards,
+                40500, -- Valorous Bonescythe Legplates,
+                41297, -- Deadly Gladiator's Kodohide Legguards
+                41303, -- Deadly Gladiator's Wyrmhide Legguards
+                41654, -- Deadly Gladiator's Leather Legguards
+                41666, -- Deadly Gladiator's Dragonhide Legguards
+                40503, -- Valorous Cryptstalker Tunic
+                40508, -- Valorous Earthshatter Tunic
+                40514, -- Valorous Earthshatter Hauberk
+                40523, -- Valorous Earthshatter Chestguard
+                40990, -- Deadly Gladiator's Ringmail Armor
+                40991, -- Deadly Gladiator's Mail Armor
+                41080, -- Deadly Gladiator's Linked Armor
+                41086, -- Deadly Gladiator's Chain Armor
+                40504, -- Valorous Cryptstalker Handguards
+                40509, -- Valorous Earthshatter Handguards
+                40515, -- Valorous Earthshatter Gloves
+                40520, -- Valorous Earthshatter Grips
+                41000, -- Deadly Gladiator's Ringmail Gauntlets
+                41006, -- Deadly Gladiator's Mail Gauntlets
+                41136, -- Deadly Gladiator's Linked Gauntlets
+                41142, -- Deadly Gladiator's Chain Gauntlets
+                40506, -- Valorous Cryptstalker Legguards
+                40512, -- Valorous Earthshatter Legguards
+                40517, -- Valorous Earthshatter Kilt
+                40522, -- Valorous Earthshatter War-Kilt
+                41026, -- Deadly Gladiator's Ringmail Leggings
+                41032, -- Deadly Gladiator's Mail Leggings
+                41198, -- Deadly Gladiator's Linked Leggings
+                41204, -- Deadly Gladiator's Chain Leggings
+                40525, -- Valorous Dreadnaught Battleplate
+                40544, -- Valorous Dreadnaught Breastplate
+                40550, -- Valorous Scourgeborne Battleplate
+                40559, -- Valorous Scourgeborne Chestguard
+                40569, -- Valorous Redemption Tunic
+                40574, -- Valorous Redemption Chestpiece
+                40579, -- Valorous Redemption Breastplate
+                40784, -- Deadly Gladiator's Dreadplate Chestpiece
+                40785, -- Deadly Gladiator's Scaled Chestpiece
+                40786, -- Deadly Gladiator's Plate Chestpiece
+                40905, -- Deadly Gladiator's Ornamented Chestguard
+                40527, -- Valorous Dreadnaught Gauntlets
+                40545, -- Valorous Dreadnaught Handguards
+                40552, -- Valorous Scourgeborne Gauntlets
+                40563, -- Valorous Scourgeborne Handguards
+                40570, -- Valorous Redemption Gloves
+                40575, -- Valorous Redemption Gauntlets
+                40580, -- Valorous Redemption Handguards
+                40804, -- Deadly Gladiator's Plate Gauntlets
+                40805, -- Deadly Gladiator's Scaled Gauntlets
+                40806, -- Deadly Gladiator's Dreadplate Gauntlets
+                40926, -- Deadly Gladiator's Ornamented Gloves
+                40529, -- Valorous Dreadnaught Legplates
+                40547, -- Valorous Dreadnaught Legguards
+                40556, -- Valorous Scourgeborne Legplates
+                40567, -- Valorous Scourgeborne Legguards
+                40572, -- Valorous Redemption Greaves
+                40577, -- Valorous Redemption Legplates
+                40583, -- Valorous Redemption Legguards
+                40844, -- Deadly Gladiator's Plate Legguards
+                40846, -- Deadly Gladiator's Scaled Legguards
+                40938, -- Deadly Gladiator's Ornamented Legplates
+                40423, -- Valorous Plagueheart Robe
+            }
         }, {
             name = "Emalon the Storm Watcher",
             npcID = 33993,
-            Level = 999
+            Level = 999,
+            items = {}
         }, {
             name = "Koralon the Flame Watcher",
             npcID = 35013,
-            Level = 999
+            Level = 999,
+            items = {}
         }, {
             name = "Toravon the Ice Watcher",
             npcID = 38433,
-            Level = 999
+            Level = 999,
+            items = {}
         }
     }
 };
