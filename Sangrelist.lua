@@ -43,7 +43,7 @@ local function createItemFrame(item_id, size)
         selected_item_frame:ReleaseChildren();
         selected_item_frame:AddChild(item_to_show)
 
-        print('clickado', item_id, items[item_id]:GetItemName())
+        print("clickado", item_id, items[item_id]:GetItemName())
         --SetItemRef(items[item_id]:GetItemLink(), items[item_id]:GetItemLink(), "LeftButton")
     end)
 
@@ -168,18 +168,20 @@ local function drawImportTextarea()
     import_frame:AddChild(import_text_area)
 
     import_text_area:SetCallback("OnEnterPressed", function(_, _, text)
-        local import_excel_data = {};
-        loadstring('import_excel_data = ' .. text)()
-        if import_excel_data then print(import_excel_data['items'][39719]['enUS']) end
+        --local import_excel_data = {};
+        loadstring("import_excel_data = " .. text)()
+        if import_excel_data then
+            print(import_excel_data["Archavon"][40418]["bookings"][1][1])
+            print(import_excel_data["Archavon"][40418]["bookings"][2][1])
+        end
     end)
-
 end
 
 local function createSelectedItemFrame()
     local big_item_group = AceGUI:Create("InlineGroup")
     big_item_group:SetFullWidth(true)
     big_item_group:SetHeight(80)
-    big_item_group:SetTitle('Item Seleccionado')
+    big_item_group:SetTitle("Item Seleccionado")
     big_item_group:SetLayout("Fill")
     main_frame:AddChild(big_item_group)
     selected_item_frame = big_item_group;
@@ -190,7 +192,7 @@ local function createBossFrame()
     items_container:SetFullWidth(true)
     items_container:SetHeight(180)
     items_container:SetLayout("Fill")
-    items_container:SetTitle('Items')
+    items_container:SetTitle("Items")
     items_container:SetAutoAdjustHeight(true)
 
     main_frame:AddChild(items_container)
@@ -233,7 +235,7 @@ local function createBookingsFrame()
     b_players_grp:SetFullWidth(true)
     b_players_grp:SetHeight(groups_height)
     b_players_grp:SetLayout("Fill") -- important!
-    b_players_grp:SetTitle('Players')
+    b_players_grp:SetTitle("Players")
     b_container:AddChild(b_players_grp)
 
     local b_players_table = AceGUI:Create("ScrollFrame")
@@ -250,7 +252,7 @@ local function createBookingsFrame()
     for _ = 1, 20 do
         local label2 = AceGUI:Create("Label")
         label2:SetFont("Fonts\\FRIZQT__.TTF", 12)
-        label2:SetText('Players')
+        label2:SetText("Players")
         b_players_table:AddChild(label2)
     end
 
@@ -260,7 +262,7 @@ local function createBookingsFrame()
     b_reserves_grp:SetFullWidth(true)
     b_reserves_grp:SetHeight(groups_height)
     b_reserves_grp:SetLayout("Fill") -- important!
-    b_reserves_grp:SetTitle('Reservas')
+    b_reserves_grp:SetTitle("Reservas")
     b_container:AddChild(b_reserves_grp)
 
     local b_reserves_table = AceGUI:Create("ScrollFrame")
@@ -277,7 +279,7 @@ local function createBookingsFrame()
     for i = 1, 20 do
         local label2 = AceGUI:Create("Label")
         label2:SetFont("Fonts\\FRIZQT__.TTF", 12)
-        label2:SetText('Manolo')
+        label2:SetText("Manolo")
         b_reserves_table:AddChild(label2)
     end
 
@@ -315,7 +317,7 @@ function SangreAddon:createMainFrame()
     -- ]]
 
     -- loadstring(eventData)()
-    -- if naxx25 then print(naxx25['items'][39719]['enUS']) end
+    -- if naxx25 then print(naxx25["items"][39719]["enUS"]) end
 
     main_frame:SetLayout("List")
     main_frame:SetTitle(SangreAddon.AddonNameAndVersion)
@@ -342,7 +344,7 @@ function SangreAddon:createImportFrame()
     end)
 
     import_frame:SetLayout("Fill")
-    import_frame:SetTitle('Import Data')
+    import_frame:SetTitle("Import Data")
     import_frame:SetStatusText("AceGUI-3.0")
     drawImportTextarea()
 end
