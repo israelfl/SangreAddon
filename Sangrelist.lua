@@ -3,10 +3,12 @@ local AceGUI = LibStub("AceGUI-3.0")
 local ITEM_COLORS = {}
 
 local instance_name = nil
+local boss_index = nil
+local db_data = {}
 local instance_options = {}
 local boss_options = {}
-local boss_index = nil
 local boss_frame = nil
+local players_frame = nil
 local bookings_frame = nil
 local selected_item_frame = nil
 local main_frame = nil
@@ -22,7 +24,7 @@ local function createItemNameFrame(item_id)
     local item_name = AceGUI:Create("Label")
 
     item_name:SetFont("Fonts\\FRIZQT__.TTF", 13)
-    item_name:SetText(ITEM_COLORS[items[item_id]:GetItemQuality() or 0]..items[item_id]:GetItemName())
+    item_name:SetText(ITEM_COLORS[items[item_id]:GetItemQuality() or 0] .. items[item_id]:GetItemName())
 
     return item_name
 end
@@ -32,25 +34,28 @@ local function createItemFrame(item_id, size)
         local empty_label = AceGUI:Create("Label")
         return empty_label
     end
+
     local item_frame = AceGUI:Create("Icon")
-
     item_frame:SetImageSize(size, size)
-
     item_frame:SetImage(items[item_id]:GetItemIcon())
 
     item_frame:SetCallback("OnClick", function(button)
         local _, item_to_show = SangreAddon:addItem(item_id)
         selected_item_frame:ReleaseChildren();
         selected_item_frame:AddChild(item_to_show)
-
-        print("clickado", item_id, items[item_id]:GetItemName())
+        players_frame:ReleaseChildren()
+        if db_data[tostring(item_id)] then
+            -- print("clickado", item_id, db_data[tostring(item_id)]['bookings'][1][1],
+            --     db_data[tostring(item_id)]['bookings'][2][1])
+            SangreAddon:updateBookingsList(item_id)
+        end
         --SetItemRef(items[item_id]:GetItemLink(), items[item_id]:GetItemLink(), "LeftButton")
     end)
 
     item_frame:SetCallback("OnEnter", function(widget)
         GameTooltip:SetOwner(item_frame.frame)
         GameTooltip:SetPoint("TOPRIGHT", item_frame.frame, "TOPRIGHT",
-                             220, -13)
+            220, -13)
         GameTooltip:SetHyperlink(items[item_id]:GetItemLink())
     end)
 
@@ -63,6 +68,7 @@ end
 local function drawBossItems(frame)
     frame:ReleaseChildren()
     selected_item_frame:ReleaseChildren();
+    players_frame:ReleaseChildren()
     for _, item_id in pairs(Sangre_instances[instance_name]["bosses"][boss_index]["items"]) do
         SangreAddon:addItem(item_id, frame)
     end
@@ -71,6 +77,7 @@ end
 local function saveData()
     SangreAddon.db.char.instance_name = instance_name
     SangreAddon.db.char.boss_index = boss_index
+    SangreAddon.db.char.bookings = db_data
 end
 
 local function drawBossData()
@@ -99,7 +106,7 @@ end
 local function loadData()
     instance_name = SangreAddon.db.char.instance_name
     boss_index = SangreAddon.db.char.boss_index
-
+    db_data = SangreAddon.db.char.bookings
     if instance_name then
         buildBossDict(instance_name)
     end
@@ -113,7 +120,7 @@ local function drawDropdowns()
 
     dropdown_group:SetLayout("Table")
     dropdown_group:SetUserData("table", {
-        columns = {130, 180, 240},
+        columns = { 130, 180, 240 },
         space = 10,
         align = "MIDDLE",
         alignV = "MIDDLE"
@@ -160,7 +167,6 @@ local function drawDropdowns()
         boss_dropdown:SetDisabled(false)
     end
     boss_dropdown:SetValue(boss_index)
-
 end
 
 local function drawImportTextarea()
@@ -168,11 +174,33 @@ local function drawImportTextarea()
     import_frame:AddChild(import_text_area)
 
     import_text_area:SetCallback("OnEnterPressed", function(_, _, text)
+        -- J = [[
+        --     {
+        --       "data": {
+        --         "user": {
+        --           "username": "username",
+        --           "type": "TYPE"
+        --         }
+        --       },
+        --       "passport": {
+        --         "user": "uuid"
+        --       },
+        --     }
+        --     ]]
+        -- L = "return " .. loadstring(text:gsub('("[^"]-"):', '[%1]='))
+        -- T = loadstring(L)()
+        -- if T then
+        --     db_data = T
+        --     saveData()
+        -- end
         --local import_excel_data = {};
-        loadstring("import_excel_data = " .. text)()
-        if import_excel_data then
-            print(import_excel_data["Archavon"][40418]["bookings"][1][1])
-            print(import_excel_data["Archavon"][40418]["bookings"][2][1])
+        loadstring("parsed_data = " .. text:gsub('("[^"]-"):', '[%1]='))()
+        --loadstring("import_excel_data = " .. text)()
+        if parsed_data then
+            db_data = parsed_data
+            saveData()
+            --print(import_excel_data["Archavon"][40418]["bookings"][1][1])
+            --print(import_excel_data["Archavon"][40418]["bookings"][2][1])
         end
     end)
 end
@@ -201,8 +229,9 @@ local function createBossFrame()
     boss_frame:SetLayout("Table") -- probably?
     boss_frame:SetUserData("table", {
         columns = {
-            {width = 425},
-            {width = 425}
+            { width = 250 },
+            { width = 250 },
+            { width = 250 }
         },
         space = -5,
         align = "LEFT",
@@ -222,8 +251,8 @@ local function createBookingsFrame()
     b_container:SetLayout("Table")
     b_container:SetUserData("table", {
         columns = {
-            {width = 0.5},
-            {width = 0.5}
+            { width = 0.5 },
+            { width = 0.5 }
         },
         space = 0,
         align = "LEFT",
@@ -242,21 +271,16 @@ local function createBookingsFrame()
     b_players_table:SetLayout("Table")
     b_players_table:SetUserData("table", {
         columns = {
-            {width = 0.99}
+            { width = 0.99 }
         },
         space = 0,
         align = "LEFT",
         alignV = "TOP"
     })
 
-    for _ = 1, 20 do
-        local label2 = AceGUI:Create("Label")
-        label2:SetFont("Fonts\\FRIZQT__.TTF", 12)
-        label2:SetText("Players")
-        b_players_table:AddChild(label2)
-    end
-
     b_players_grp:AddChild(b_players_table)
+
+    players_frame = b_players_table
 
     local b_reserves_grp = AceGUI:Create("InlineGroup")
     b_reserves_grp:SetFullWidth(true)
@@ -269,7 +293,7 @@ local function createBookingsFrame()
     b_reserves_table:SetLayout("Table")
     b_reserves_table:SetUserData("table", {
         columns = {
-            {width = 0.99}
+            { width = 0.99 }
         },
         space = 0,
         align = "LEFT",
@@ -295,6 +319,7 @@ function SangreAddon:createMainFrame()
     end
     main_frame = AceGUI:Create("Frame")
     main_frame:SetWidth(850)
+    main_frame:EnableResize(false)
     main_frame:SetCallback("OnClose", function(widget)
         boss_frame = nil
         bookings_frame = nil
@@ -354,7 +379,7 @@ function SangreAddon:addItem(item_id, frame)
 
     item_group:SetLayout("Table")
     item_group:SetUserData("table", {
-        columns = {50, 425},
+        columns = { 50, 425 },
         space = 1,
         align = "LEFT",
         alignV = "MIDDLE"
@@ -373,11 +398,28 @@ function SangreAddon:addItem(item_id, frame)
     return items[item_id], item_group
 end
 
+function SangreAddon:updateBookingsList(item_id)
+    local s_item_id = tostring(item_id)
+    if db_data[s_item_id] then
+        local temp_table = {}
+        for p_index, p_name in pairs(db_data[s_item_id]['bookings'][1]) do
+            local label = AceGUI:Create("Label")
+            label:SetFont("Fonts\\FRIZQT__.TTF", 12)
+            label:SetText(p_name .. " (" .. db_data[s_item_id]['bookings'][2][p_index] .. ")")
+            players_frame:AddChild(label)
+            print(p_name ..
+                " (" ..
+                db_data[s_item_id]['bookings'][2][p_index] ..
+                ") (" .. type(db_data[s_item_id]['bookings'][2][p_index]) .. ")")
+        end
+    end
+end
+
 function SangreAddon:initSangrelists()
     -- create item colors
     for i = 0, 7 do
         local _, _, _, itemQuality = GetItemQualityColor(i)
-        ITEM_COLORS[i] = "|c"..itemQuality
+        ITEM_COLORS[i] = "|c" .. itemQuality
     end
 
     loadData()
