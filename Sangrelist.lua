@@ -16,6 +16,7 @@ local selected_item_frame = nil
 local main_frame = nil
 local import_frame = nil
 local items = {}
+local pepe = "manolo"
 
 local function createItemNameFrame(item_id)
     if item_id < 0 then
@@ -211,12 +212,14 @@ end
 
 local function createSelectedItemFrame()
     local big_item_group = AceGUI:Create("InlineGroup")
-    big_item_group:SetFullWidth(true)
+    --big_item_group:SetFullWidth(true)
+    big_item_group:SetWidth(280)
     big_item_group:SetHeight(80)
     big_item_group:SetTitle("Item Seleccionado")
     big_item_group:SetLayout("Fill")
-    main_frame:AddChild(big_item_group)
     selected_item_frame = big_item_group;
+
+    main_frame:AddChild(selected_item_frame)
 end
 
 local function createBossFrame()
@@ -330,6 +333,25 @@ function SangreAddon:createMainFrame()
         bookings_frame = nil
         AceGUI:Release(widget)
         main_frame = nil
+    end)
+
+    main_frame.frame:RegisterEvent("LOOT_OPENED")
+    main_frame.frame:SetScript("OnEvent", function(frame, event)
+        local count = GetNumLootItems()
+        print("Total:", count)
+        if count > 0 then
+            SangreAddon:createMainFrame()
+            for i = 1, count do
+                local itemLink = GetLootSlotLink(i)
+                local itemId = tonumber(itemLink:match("item:(%d+):"))
+                print(itemLink, itemId)
+                boss_frame:ReleaseChildren()
+                items = {}
+                SangreAddon:addItem(itemId, boss_frame)
+            end
+        end
+        print(boss_frame)
+
     end)
 
     -- eventData = [[
