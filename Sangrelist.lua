@@ -7,6 +7,8 @@ local boss_index = nil
 local db_data = {}
 local instance_options = {}
 local boss_options = {}
+local c_players_booking = {}
+
 local boss_frame = nil
 local players_frame = nil
 local bookings_frame = nil
@@ -52,6 +54,7 @@ local function createItemFrame(item_id, size)
         --SetItemRef(items[item_id]:GetItemLink(), items[item_id]:GetItemLink(), "LeftButton")
     end)
 
+    -- Mostrar u ocultar el tooltip del objeto
     item_frame:SetCallback("OnEnter", function(widget)
         GameTooltip:SetOwner(item_frame.frame)
         GameTooltip:SetPoint("TOPRIGHT", item_frame.frame, "TOPRIGHT",
@@ -62,6 +65,7 @@ local function createItemFrame(item_id, size)
     item_frame:SetCallback("OnLeave", function(widget)
         GameTooltip:Hide()
     end)
+
     return item_frame
 end
 
@@ -243,7 +247,7 @@ local function createBossFrame()
 end
 
 local function createBookingsFrame()
-    local groups_height = 135
+    local groups_height = 235
     local b_container = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
     b_container:SetFullWidth(true)
     b_container:SetHeight(1)
@@ -303,7 +307,7 @@ local function createBookingsFrame()
     for i = 1, 20 do
         local label2 = AceGUI:Create("Label")
         label2:SetFont("Fonts\\FRIZQT__.TTF", 12)
-        label2:SetText("Manolo")
+        --label2:SetText("Manolo")
         b_reserves_table:AddChild(label2)
     end
 
@@ -319,6 +323,7 @@ function SangreAddon:createMainFrame()
     end
     main_frame = AceGUI:Create("Frame")
     main_frame:SetWidth(850)
+    main_frame:SetHeight(600)
     main_frame:EnableResize(false)
     main_frame:SetCallback("OnClose", function(widget)
         boss_frame = nil
@@ -401,16 +406,61 @@ end
 function SangreAddon:updateBookingsList(item_id)
     local s_item_id = tostring(item_id)
     if db_data[s_item_id] then
-        local temp_table = {}
-        for p_index, p_name in pairs(db_data[s_item_id]['bookings'][1]) do
-            local label = AceGUI:Create("Label")
+
+        local sorTable = function(aTable, direction)
+            local keys = {}
+
+            for k, v in pairs(aTable) do keys[#keys + 1] = k end
+            if (direction == 'desc') then
+                table.sort(keys, function(a, b) return a > b end)
+            else
+                table.sort(keys, function(a, b) return a < b end)
+            end
+            local n = 0
+
+            return function()
+                n = n + 1
+                return keys[n], aTable[keys[n]]
+            end
+        end
+
+        local table_to_view = {
+            ["with_numbers"] = {},
+            ["rest"] = {}
+        };
+        for p_indice, p_valor in pairs(db_data[s_item_id]['bookings'][2]) do
+            if (type(p_valor) == 'number') then table_to_view["with_numbers"][p_valor] = db_data[s_item_id]['bookings'][
+                    1][p_indice]
+            else table_to_view["rest"][p_valor] = db_data[s_item_id]['bookings'][1][p_indice] end
+        end
+
+        local finalResult = sorTable(table_to_view["with_numbers"], 'desc')
+        local first = true
+        for p_index, p_name in finalResult do
+            local label = AceGUI:Create("InteractiveLabel")
+            if first then label:SetColor(0.5, 1, 0.5) end
             label:SetFont("Fonts\\FRIZQT__.TTF", 12)
-            label:SetText(p_name .. " (" .. db_data[s_item_id]['bookings'][2][p_index] .. ")")
+            label:SetText(p_index .. ' - ' .. p_name)
+            label:SetCallback("OnClick", function(button)
+                print('label pulsado')
+            end)
             players_frame:AddChild(label)
-            print(p_name ..
-                " (" ..
-                db_data[s_item_id]['bookings'][2][p_index] ..
-                ") (" .. type(db_data[s_item_id]['bookings'][2][p_index]) .. ")")
+            first = false
+        end
+
+        local label_line = AceGUI:Create("InteractiveLabel")
+        label_line:SetColor(1, 1, 0)
+        label_line:SetFont("Fonts\\FRIZQT__.TTF", 14)
+        label_line:SetText("---")
+        players_frame:AddChild(label_line)
+
+        for p_index, p_name in pairs(table_to_view["rest"]) do
+            local label = AceGUI:Create("Label")
+            label:SetColor(0.7, 0.7, 0.7)
+            label:SetFont("Fonts\\FRIZQT__.TTF", 12)
+            label:SetText(p_name .. " (" .. p_index .. ")")
+            players_frame:AddChild(label)
+            first = false
         end
     end
 end
