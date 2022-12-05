@@ -5,7 +5,6 @@ local db_defaults = {
         instance_name = "",
         boss_index = 0,
         bookings = {},
-        raid_players_data = {}
         -- class_index = 1,
         -- spec_index = 1,
         -- phase_index = 1,
