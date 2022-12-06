@@ -6,6 +6,7 @@ local instance_name = nil
 local boss_index = nil
 local db_data = {}
 local raid_players_data = {}
+local raid_players_data_map = {}
 local instance_options = {}
 local boss_options = {}
 local c_players_booking = {}
@@ -20,6 +21,12 @@ local main_frame = nil
 local import_frame = nil
 local system_frame = nil
 local system_header_config = {
+    {
+        ["key"] = "name",
+        ["title"] = "Nombre",
+        ["width"] = 100,
+        ["enabled"] = true
+    },
     {
         ["key"] = "a",
         ["title"] = "Asist.\nPuntualidad",
@@ -97,22 +104,25 @@ local items = {}
 local allowed_instances = { 533, 603, 615, 616, 624, 631, 649, 724 }
 
 local function recalculatePlayer(player)
-    local t = (raid_players_data[player]["a"] + raid_players_data[player]["e"] + raid_players_data[player]["g"] + raid_players_data[player]["r"] + raid_players_data[player]["c"] + raid_players_data[player]["bc"] + raid_players_data[player]["cv"]) / 550 * 100 + raid_players_data[player]["bd"] * (-200)
+    local player_index = raid_players_data_map[player]
+    local t = (raid_players_data[player_index]["a"] + raid_players_data[player_index]["e"] + raid_players_data[player_index]["g"] + raid_players_data[player_index]["r"] + raid_players_data[player_index]["c"] + raid_players_data[player_index]["bc"] + raid_players_data[player_index]["cv"]) / 550 * 100 + raid_players_data[player_index]["bd"] * (-200)
     local t_truncate = math.floor((t * 100) + 0.5) / 100
-    raid_players_data[player]["t"] = t_truncate
-    SangreAddon.db.char.raid_players_data[player]["t"] = t_truncate
+    raid_players_data[player_index]["t"] = t_truncate
+    SangreAddon.db.char.raid_players_data[player_index]["t"] = t_truncate
 
-    local rt = raid_players_data[player]["t"] * 0.3 + raid_players_data[player]["acu"] * 0.7 + raid_players_data[player]["p"] * (-0.2)
+    local rt = raid_players_data[player_index]["t"] * 0.3 + raid_players_data[player_index]["acu"] * 0.7 + raid_players_data[player_index]["p"] * (-0.2)
     local rt_truncate = math.floor((rt * 100) + 0.5) / 100
-    raid_players_data[player]["rt"] = rt_truncate
-    SangreAddon.db.char.raid_players_data[player]["rt"] = rt_truncate
+    raid_players_data[player_index]["rt"] = rt_truncate
+    SangreAddon.db.char.raid_players_data[player_index]["rt"] = rt_truncate
 end
 
 local function updatePlayersBookings(player, item_id, action)
     if action == "add" then
         if c_players_booking[player] == nil then c_players_booking[player] = {} end
+
         tinsert(c_players_booking[player], item_id)
-        SangreAddon.db.char.raid_players_data[player]["bd"] = SangreAddon.db.char.raid_players_data[player]["bd"] + 1
+        local player_index = raid_players_data_map[player]
+        SangreAddon.db.char.raid_players_data[player_index]["bd"] = SangreAddon.db.char.raid_players_data[player_index]["bd"] + 1
         raid_players_data = SangreAddon.db.char.raid_players_data
         assign_item_frame:ReleaseChildren()
         local doneLabel = AceGUI:Create("Label")
@@ -155,6 +165,9 @@ local function loadData()
     raid_players_data = SangreAddon.db.char.raid_players_data
     if instance_name then
         buildBossDict(instance_name)
+    end
+    for k, v in ipairs(raid_players_data) do
+        raid_players_data_map[v['name']] = k
     end
 end
 
@@ -330,12 +343,7 @@ local function drawImportContent()
 end
 
 local function drawSystemHeaders(frame)
-    local f = AceGUI:Create("Label")
-    f:SetText("Nombre")
-    f:SetFont("Fonts\\FRIZQT__.TTF", 14)
     local color = 0.8
-    f:SetColor(color, color, color)
-    frame:AddChild(f)
     for _, v in ipairs(system_header_config) do
         if v["enabled"] then
             f = AceGUI:Create("Label")
@@ -349,10 +357,7 @@ end
 local function drawSystemContent(frame)
     main_frame:SetStatusText("Cargando Sistema. Por favor espere...")
 
-    for k, v in pairs(raid_players_data) do
-        local f = AceGUI:Create("Label", k)
-        f:SetText(k)
-        frame:AddChild(f)
+    for _, v in pairs(raid_players_data) do
         for _, v_sort in ipairs(system_header_config) do
             if v_sort["enabled"] then
                 local f = AceGUI:Create("Label")
@@ -623,8 +628,8 @@ function SangreAddon:createSystemFrame()
         AceGUI:Release(system_frame)
         return
     end
-    local frame_width = 100
-    local tableWidths = { { width = 100 } }
+    local frame_width = 0
+    local tableWidths = {}
     for _, v in ipairs(system_header_config) do
         if v["enabled"] then
             table.insert(tableWidths, { width = v["width"] })
@@ -710,10 +715,12 @@ function SangreAddon:updateBookingsList(item_id)
         }
         for p_indice, p_valor in pairs(db_data[s_item_id]["bookings"][2]) do
             --if (type(p_valor) == "number") then table_to_view["with_numbers"][p_valor] = db_data[s_item_id]["bookings"][1][p_indice]
-            if (p_valor == "getTable") then table_to_view["with_numbers"][
-                    raid_players_data[db_data[s_item_id]["bookings"][1][p_indice]]["rt"]] = db_data[s_item_id][
+            if (p_valor == "getTable") then
+                local player_index = raid_players_data_map[db_data[s_item_id]["bookings"][1][p_indice]]
+                 table_to_view["with_numbers"][
+                    raid_players_data[player_index]["rt"]] = db_data[s_item_id][
                     "bookings"][1][p_indice]
-            else table_to_view["rest"][p_valor] = db_data[s_item_id]["bookings"][1][p_indice] end
+            else tinsert(table_to_view['rest'], {player = db_data[s_item_id]["bookings"][1][p_indice], value = p_valor}) end
         end
 
         local finalResult = sorTable(table_to_view["with_numbers"], "desc")
@@ -727,7 +734,8 @@ function SangreAddon:updateBookingsList(item_id)
                 local text = self.label:GetText()
                 local _, j = string.find(text, " - ")
                 local player_name = string.sub(text, j + 3, string.len(text))
-                print("label pulsado", player_name, raid_players_data[string.sub(text, j + 3, string.len(text))]["rt"])
+                print("player_name: ", player_name)
+                print("label pulsado", player_name, raid_players_data[raid_players_data_map[player_name]]["rt"])
                 drawAssignButton(player_name, item_id)
             end)
             players_frame:AddChild(label)
@@ -739,12 +747,11 @@ function SangreAddon:updateBookingsList(item_id)
         label_line:SetFont("Fonts\\FRIZQT__.TTF", 14)
         label_line:SetText("---")
         players_frame:AddChild(label_line)
-
-        for p_index, p_name in pairs(table_to_view["rest"]) do
+        for _, p_name in pairs(table_to_view["rest"]) do
             local label = AceGUI:Create("Label")
             label:SetColor(0.7, 0.7, 0.7)
             label:SetFont("Fonts\\FRIZQT__.TTF", 12)
-            label:SetText(p_name .. " (" .. p_index .. ")")
+            label:SetText(p_name['player'] .. " (" .. p_name['value'] .. ")")
             players_frame:AddChild(label)
             first = false
         end
