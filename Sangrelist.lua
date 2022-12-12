@@ -4,6 +4,7 @@ local ITEM_COLORS = {}
 
 local instance_name = nil
 local boss_index = nil
+local constants_data = {}
 local db_data = {}
 local raid_players_data = {}
 local raid_players_data_map = {}
@@ -105,12 +106,19 @@ local allowed_instances = { 533, 603, 615, 616, 624, 631, 649, 724 }
 
 local function recalculatePlayer(player)
     local player_index = raid_players_data_map[player]
-    local t = (raid_players_data[player_index]["a"] + raid_players_data[player_index]["e"] + raid_players_data[player_index]["g"] + raid_players_data[player_index]["r"] + raid_players_data[player_index]["c"] + raid_players_data[player_index]["bc"] + raid_players_data[player_index]["cv"]) / 550 * 100 + raid_players_data[player_index]["bd"] * (-200)
+    local t = (
+        raid_players_data[player_index]["a"] + raid_players_data[player_index]["e"] +
+            raid_players_data[player_index]["g"] + raid_players_data[player_index]["r"] +
+            raid_players_data[player_index]["c"] + raid_players_data[player_index]["bc"] +
+            raid_players_data[player_index]["cv"]) / constants_data.t * 100 +
+        raid_players_data[player_index]["bd"] * (constants_data.bd)
     local t_truncate = math.floor((t * 100) + 0.5) / 100
     raid_players_data[player_index]["t"] = t_truncate
     SangreAddon.db.char.raid_players_data[player_index]["t"] = t_truncate
 
-    local rt = raid_players_data[player_index]["t"] * 0.3 + raid_players_data[player_index]["acu"] * 0.7 + raid_players_data[player_index]["p"] * (-0.2)
+    local rt = raid_players_data[player_index]["t"] * (constants_data.t_perc / 100) +
+        raid_players_data[player_index]["acu"] * (constants_data.acu / 100) +
+        raid_players_data[player_index]["p"] * (constants_data.p)
     local rt_truncate = math.floor((rt * 100) + 0.5) / 100
     raid_players_data[player_index]["rt"] = rt_truncate
     SangreAddon.db.char.raid_players_data[player_index]["rt"] = rt_truncate
@@ -122,7 +130,8 @@ local function updatePlayersBookings(player, item_id, action)
 
         tinsert(c_players_booking[player], item_id)
         local player_index = raid_players_data_map[player]
-        SangreAddon.db.char.raid_players_data[player_index]["bd"] = SangreAddon.db.char.raid_players_data[player_index]["bd"] + 1
+        SangreAddon.db.char.raid_players_data[player_index]["bd"] = SangreAddon.db.char.raid_players_data[player_index][
+            "bd"] + 1
         raid_players_data = SangreAddon.db.char.raid_players_data
         assign_item_frame:ReleaseChildren()
         local doneLabel = AceGUI:Create("Label")
@@ -134,7 +143,6 @@ local function updatePlayersBookings(player, item_id, action)
         local current_date = date("%d/%m/%Y")
         for k, v in ipairs(db_data[tostring(item_id)]["bookings"][1]) do
             if (v == player) then
-                print(item_id, v, player, k, current_date)
                 SangreAddon.db.char.bookings[tostring(item_id)]["bookings"][2][k] = current_date
             end
         end
@@ -158,17 +166,22 @@ local function buildBossDict(instanceId)
     end
 end
 
+local function load_players_data_map(data_map)
+    for k, v in ipairs(data_map) do
+        raid_players_data_map[v['name']] = k
+    end
+end
+
 local function loadData()
     instance_name = SangreAddon.db.char.instance_name
     boss_index = SangreAddon.db.char.boss_index
+    constants_data = SangreAddon.db.char.constants
     db_data = SangreAddon.db.char.bookings
     raid_players_data = SangreAddon.db.char.raid_players_data
     if instance_name then
         buildBossDict(instance_name)
     end
-    for k, v in ipairs(raid_players_data) do
-        raid_players_data_map[v['name']] = k
-    end
+    load_players_data_map(raid_players_data)
 end
 
 local function saveData()
@@ -210,11 +223,8 @@ local function createItemFrame(item_id, size)
         selected_item_frame:AddChild(item_to_show)
         players_frame:ReleaseChildren()
         if db_data[tostring(item_id)] then
-            -- print("clickado", item_id, db_data[tostring(item_id)]["bookings"][1][1],
-            --     db_data[tostring(item_id)]["bookings"][2][1])
             SangreAddon:updateBookingsList(item_id)
         end
-        --SetItemRef(items[item_id]:GetItemLink(), items[item_id]:GetItemLink(), "LeftButton")
     end)
 
     -- Mostrar u ocultar el tooltip del objeto
@@ -335,7 +345,9 @@ local function drawImportContent()
     import_text_area:SetCallback("OnEnterPressed", function(_, _, text)
         loadstring("parsed_data = " .. text:gsub('("[^"]-"):', '[%1]='))()
         if parsed_data then
-            if importing_systems then raid_players_data = parsed_data
+            if importing_systems then
+                raid_players_data = parsed_data
+                load_players_data_map(raid_players_data)
             else db_data = parsed_data end
             saveData()
         end
@@ -418,7 +430,7 @@ end
 local function createBossFrame()
     local items_container = AceGUI:Create("InlineGroup") -- "InlineGroup" is also good
     items_container:SetFullWidth(true)
-    items_container:SetHeight(180)
+    items_container:SetHeight(230)
     items_container:SetLayout("Fill")
     items_container:SetTitle("Items")
     items_container:SetAutoAdjustHeight(true)
@@ -443,7 +455,7 @@ local function createBossFrame()
 end
 
 local function createBookingsFrame()
-    local groups_height = 235
+    local groups_height = 185
     local b_container = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
     b_container:SetFullWidth(true)
     b_container:SetHeight(1)
@@ -518,7 +530,6 @@ local function drawAssignButton(player_name, item_id)
     local assign_button = AceGUI:Create("Button")
     assign_button:SetText("(" .. string.upper(player_name) .. ') Asignar "' .. items[item_id]:GetItemName() .. '"')
     assign_button:SetCallback("OnClick", function()
-        print("click:", item_id, player_name)
         updatePlayersBookings(player_name, item_id, "add")
     end)
 
@@ -554,44 +565,26 @@ function SangreAddon:createMainFrame()
         main_frame = nil
     end)
 
-    local instance_info = (select(8, GetInstanceInfo()))
-    if SangreAddon:inArray(allowed_instances, instance_info) then
-        main_frame.frame:RegisterEvent("LOOT_OPENED")
-        main_frame.frame:SetScript("OnEvent", function(frame, event)
-            local count = GetNumLootItems()
-            print("Total:", count)
-            if count > 0 then
-                SangreAddon:createMainFrame()
-                for i = 1, count do
-                    local itemLink = GetLootSlotLink(i)
-                    local itemId = tonumber(itemLink:match("item:(%d+):"))
-                    print(itemLink, itemId)
-                    boss_frame:ReleaseChildren()
-                    items = {}
-                    SangreAddon:addItem(itemId, boss_frame)
+    if SangreAddon.db.char.loot_filter and SangreAddon.db.char.loot_filter == true then
+        local instance_info = (select(8, GetInstanceInfo()))
+        if SangreAddon:inArray(allowed_instances, instance_info) then
+            main_frame.frame:RegisterEvent("LOOT_OPENED")
+            main_frame.frame:SetScript("OnEvent", function(frame, event)
+                local count = GetNumLootItems()
+                if count > 0 then
+                    SangreAddon:createMainFrame()
+                    for i = 1, count do
+                        local itemLink = GetLootSlotLink(i)
+                        local itemId = tonumber(itemLink:match("item:(%d+):"))
+                        boss_frame:ReleaseChildren()
+                        items = {}
+                        SangreAddon:addItem(itemId, boss_frame)
+                    end
                 end
-            end
-            print(boss_frame)
 
-        end)
+            end)
+        end
     end
-
-    -- eventData = [[
-    --     naxx25 = {
-    --         ["name"] = "Anub'Rekhan",
-    --         ["items"] = {
-    --             [39719] = {
-    --                 ["sheetRow"] = 5,
-    --                 ["enUS"] = "Manto de las langostas",
-    --                 ["esES"] = "Mantle of the Locusts",
-    --                 ["reserves"] = {}
-    --             }
-    --         }
-    --     }
-    -- ]]
-
-    -- loadstring(eventData)()
-    -- if naxx25 then print(naxx25["items"][39719]["enUS"]) end
 
     main_frame:SetLayout("List")
     main_frame:SetTitle(SangreAddon.AddonNameAndVersion)
@@ -717,10 +710,9 @@ function SangreAddon:updateBookingsList(item_id)
             --if (type(p_valor) == "number") then table_to_view["with_numbers"][p_valor] = db_data[s_item_id]["bookings"][1][p_indice]
             if (p_valor == "getTable") then
                 local player_index = raid_players_data_map[db_data[s_item_id]["bookings"][1][p_indice]]
-                 table_to_view["with_numbers"][
-                    raid_players_data[player_index]["rt"]] = db_data[s_item_id][
-                    "bookings"][1][p_indice]
-            else tinsert(table_to_view['rest'], {player = db_data[s_item_id]["bookings"][1][p_indice], value = p_valor}) end
+                table_to_view["with_numbers"][raid_players_data[player_index]["rt"]] = db_data[s_item_id]["bookings"][1]
+                    [p_indice]
+            else tinsert(table_to_view['rest'], { player = db_data[s_item_id]["bookings"][1][p_indice], value = p_valor }) end
         end
 
         local finalResult = sorTable(table_to_view["with_numbers"], "desc")
@@ -734,8 +726,6 @@ function SangreAddon:updateBookingsList(item_id)
                 local text = self.label:GetText()
                 local _, j = string.find(text, " - ")
                 local player_name = string.sub(text, j + 3, string.len(text))
-                print("player_name: ", player_name)
-                print("label pulsado", player_name, raid_players_data[raid_players_data_map[player_name]]["rt"])
                 drawAssignButton(player_name, item_id)
             end)
             players_frame:AddChild(label)

@@ -5,98 +5,97 @@ local db_defaults = {
         instance_name = "",
         boss_index = 0,
         bookings = {},
-        raid_players_data = {}
-        -- class_index = 1,
-        -- spec_index = 1,
-        -- phase_index = 1,
-        -- filter_specs = {},
-        -- highlight_spec = {}
+        raid_players_data = {},
+        constants = {
+            bd = 0,
+            p = 0,
+            t = 0,
+            t_perc = 0,
+            acu = 0
+        },
+        loot_filter = false
     }
 }
 
 local configTable = {
     type = "group",
     args = {
-        filter_class_names = {
-            name = "Filter class names",
-            desc = "Removes class name separators from item tooltips",
+        constant_bd = {
+            name = "Filtro de loot",
+            desc = "Activa o desactiva el filtro al lotear un boss (aún no implementado)",
             type = "toggle",
+            disabled = true,
             set = function(info, val)
-                SangreAddon.db.char.filter_class_names = val
+                SangreAddon.db.char.loot_filter = val
             end,
             get = function(info)
-                return SangreAddon.db.char.filter_class_names
+                return SangreAddon.db.char.loot_filter
             end
         },
-        filter_specs = {
-            name = "Filter specs",
-            desc = "Removes unselected specs from item tooltips",
-            type = "multiselect",
-            values = nil,
-            set = function(info, key, val)
-                local ci, si = strsplit(":", key)
-                ci = tonumber(ci)
-                si = tonumber(si)
-                local class_name = Sangre_classes[ci].name
-                local spec_name = Sangre_classes[ci].specs[si]
-                SangreAddon.db.char.filter_specs[class_name][spec_name] = val
-            end,
-            get = function(info, key)
-                local ci, si = strsplit(":", key)
-                ci = tonumber(ci)
-                si = tonumber(si)
-                local class_name = Sangre_classes[ci].name
-                local spec_name = Sangre_classes[ci].specs[si]
-                if (not SangreAddon.db.char.filter_specs[class_name]) then
-                    SangreAddon.db.char.filter_specs[class_name] = {}
-                end
-                if (SangreAddon.db.char.filter_specs[class_name][spec_name] == nil) then
-                    SangreAddon.db.char.filter_specs[class_name][spec_name] = true
-                end
-                return SangreAddon.db.char.filter_specs[class_name][spec_name]
-            end
-        },
-        highlight_spec = {
-            name = "Highlight spec",
-            desc = "Highlights selected spec in item tooltips",
-            type = "multiselect",
-            values = nil,
-            set = function(info, key, val)
-                if val then
-                    local ci, si = strsplit(":", key)
-                    ci = tonumber(ci)
-                    si = tonumber(si)
-                    local class_name = Sangre_classes[ci].name
-                    local spec_name = Sangre_classes[ci].specs[si]
-                    SangreAddon.db.char.highlight_spec = {
-                        key = key,
-                        class_name = class_name,
-                        spec_name = spec_name
-                    }
-                else
-                    SangreAddon.db.char.highlight_spec = {
-                    }
-                end
-            end,
-            get = function(info, key)
-                return SangreAddon.db.char.highlight_spec.key == key
-            end
+        moreoptions = {
+            name = "Constantes",
+            type = "group",
+            args = {
+                constant_bd = {
+                    name = "BIS Despojado",
+                    desc = "Establece la constante para BIS Despojado",
+                    type = "input",
+                    set = function(info, val)
+                        SangreAddon.db.char.constants.bd = tonumber(val)
+                    end,
+                    get = function(info)
+                        return tostring(SangreAddon.db.char.constants.bd)
+                    end
+                },
+                constant_p = {
+                    name = "Penalizaciones",
+                    desc = "Establece la constante para penalizaciones",
+                    type = "input",
+                    set = function(info, val)
+                        SangreAddon.db.char.constants.p = tonumber(val)
+                    end,
+                    get = function(info)
+                        return tostring(SangreAddon.db.char.constants.p)
+                    end
+                },
+                constant_t = {
+                    name = "Total",
+                    desc = "Establece la constante para total",
+                    type = "input",
+                    set = function(info, val)
+                        SangreAddon.db.char.constants.t = tonumber(val)
+                    end,
+                    get = function(info)
+                        return tostring(SangreAddon.db.char.constants.t)
+                    end
+                },
+                constant_t_perc = {
+                    name = "Porcentaje Total",
+                    desc = "Establece la constante para el porcentaje total",
+                    type = "input",
+                    set = function(info, val)
+                        SangreAddon.db.char.constants.t_perc = tonumber(val)
+                    end,
+                    get = function(info)
+                        return tostring(SangreAddon.db.char.constants.t_perc)
+                    end
+                },
+                constant_acu = {
+                    name = "Porcentaje Acumulado",
+                    desc = "Establece la constante para el porcentaje acumulado",
+                    type = "input",
+                    set = function(info, val)
+                        SangreAddon.db.char.constants.acu = tonumber(val)
+                    end,
+                    get = function(info)
+                        return tostring(SangreAddon.db.char.constants.acu)
+                    end
+                }
+            }
         }
     }
 }
 
-local function buildFilterSpecOptions()
-    local filter_specs_options = {}
-    for ci, class in ipairs(Sangre_classes) do
-        for si, spec in ipairs(Sangre_classes[ci].specs) do
-            local option_val = "|T" .. Sangre_spec_icons[class.name][spec] .. ":16|t " .. class.name .. " " .. spec
-            local option_key = ci .. ":" .. si
-            filter_specs_options[option_key] = option_val
-        end
-    end
-    configTable.args.filter_specs.values = filter_specs_options
-    configTable.args.highlight_spec.values = filter_specs_options
-end
 
 local function migrateAddonDB()
     if not SangreAddon.db.char["version"] then
@@ -104,11 +103,14 @@ local function migrateAddonDB()
         SangreAddon.db.char.boss_index = 1
         SangreAddon.db.char.version = 1.1
         SangreAddon.db.char.bookings = {}
-        -- SangreAddon.db.char.highlight_spec = {}
-        -- SangreAddon.db.char.filter_specs = {}
-        -- SangreAddon.db.char.class_index = 1
-        -- SangreAddon.db.char.spec_index = 1
-        -- SangreAddon.db.char.phase_index = 1
+        SangreAddon.db.char.loot_filter = false
+        SangreAddon.db.char.constants = {
+            bd = -200,
+            p = -20,
+            t = 550,
+            t_perc = 30,
+            acu = 70
+        }
     end
 end
 
@@ -126,8 +128,7 @@ end
 function SangreAddon:initConfig()
     SangreAddon.db = LibStub("AceDB-3.0"):New("SangreAddonDB", db_defaults, true)
 
-    --buildFilterSpecOptions()
-    --LibStub("AceConfig-3.0"):RegisterOptionsTable(SangreAddon.AceAddonName, configTable)
-    --AceConfigDialog:AddToBlizOptions(SangreAddon.AceAddonName, SangreAddon.AceAddonName)
     migrateAddonDB()
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(SangreAddon.AceAddonName, configTable)
+    AceConfigDialog:AddToBlizOptions(SangreAddon.AceAddonName, SangreAddon.AceAddonName)
 end
